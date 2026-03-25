@@ -40,8 +40,8 @@ export function TaskFilters() {
   const hasActiveFilters = filters.status || filters.priority || filters.search;
 
   return (
-    <div className="bg-white rounded-xl border shadow-sm p-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="bg-white rounded-xl border shadow-sm p-4 flex flex-col sm:flex-row gap-3">
+      <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Input
           id="search"
           placeholder="Search tasks..."
@@ -60,25 +60,29 @@ export function TaskFilters() {
           value={filters.priority ?? ''}
           onChange={(e) => setFilters({ priority: e.target.value as typeof filters.priority })}
         />
-        <div className="flex gap-2">
-          <Select
-            id="sort-by"
-            options={sortByOptions}
-            value={filters.sortBy ?? 'createdAt'}
-            onChange={(e) => setFilters({ sortBy: e.target.value as typeof filters.sortBy })}
-            className="flex-1"
-          />
-          <Select
-            id="sort-order"
-            options={sortOrderOptions}
-            value={filters.sortOrder ?? 'desc'}
-            onChange={(e) => setFilters({ sortOrder: e.target.value as typeof filters.sortOrder })}
-            className="w-36"
-          />
-        </div>
       </div>
+
+      <div className="border-t sm:border-t-0 sm:border-l border-gray-200 pt-3 sm:pt-0 sm:pl-3 flex items-end gap-2 shrink-0">
+        <Select
+          id="sort-by"
+          label="Sort by"
+          options={sortByOptions}
+          value={filters.sortBy ?? 'createdAt'}
+          onChange={(e) => setFilters({ sortBy: e.target.value as typeof filters.sortBy })}
+          className="w-36"
+        />
+        <Select
+          id="sort-order"
+          label="Direction"
+          options={sortOrderOptions}
+          value={filters.sortOrder ?? 'desc'}
+          onChange={(e) => setFilters({ sortOrder: e.target.value as typeof filters.sortOrder })}
+          className="w-32"
+        />
+      </div>
+
       {hasActiveFilters && (
-        <div className="mt-3 flex justify-end">
+        <div className="border-t sm:border-t-0 sm:border-l border-gray-200 pt-3 sm:pt-0 sm:pl-3 flex items-end shrink-0">
           <Button variant="ghost" size="sm" onClick={handleReset}>
             Clear filters
           </Button>
