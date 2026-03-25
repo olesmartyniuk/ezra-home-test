@@ -33,7 +33,7 @@ public class TasksController : ControllerBase
     /// <summary>Creates a new task.</summary>
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateTaskDto dto)
-    {        
+    {
         var created = await _taskService.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }

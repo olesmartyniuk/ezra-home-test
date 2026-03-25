@@ -1,12 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using FluentValidation;
-using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using ToDoList.Api.Data;
 using ToDoList.Api.Middleware;
 using ToDoList.Api.Services;
-using ToDoList.Api.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,10 +13,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Services
 builder.Services.AddScoped<TaskService>();
-
-// Validation
-builder.Services.AddValidatorsFromAssemblyContaining<CreateTaskDtoValidator>();
-builder.Services.AddFluentValidationAutoValidation();
 
 // Controllers with camelCase JSON and enums serialized as strings
 builder.Services.AddControllers()
