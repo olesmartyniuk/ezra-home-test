@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using ToDoList.Api.DTOs;
-using ToDoList.Api.Services.Interfaces;
+using ToDoList.Api.Services;
 
 namespace ToDoList.Api.Controllers;
 
@@ -8,9 +8,9 @@ namespace ToDoList.Api.Controllers;
 [Route("api/[controller]")]
 public class TasksController : ControllerBase
 {
-    private readonly ITaskService _taskService;
+    private readonly TaskService _taskService;
 
-    public TasksController(ITaskService taskService) => _taskService = taskService;
+    public TasksController(TaskService taskService) => _taskService = taskService;
 
     /// <summary>Returns all tasks, with optional filtering and sorting.</summary>
     [HttpGet]
@@ -33,8 +33,7 @@ public class TasksController : ControllerBase
     /// <summary>Creates a new task.</summary>
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateTaskDto dto)
-    {
-        throw new NotImplementedException("This method is not implemented yet. Please implement the CreateAsync method in TaskService and then uncomment this code.");
+    {        
         var created = await _taskService.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }

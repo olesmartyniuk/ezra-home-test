@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using ToDoList.Api.Data;
 using ToDoList.Api.Middleware;
 using ToDoList.Api.Services;
-using ToDoList.Api.Services.Interfaces;
 using ToDoList.Api.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,7 +15,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Services
-builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddScoped<TaskService>();
 
 // Validation
 builder.Services.AddValidatorsFromAssemblyContaining<CreateTaskDtoValidator>();

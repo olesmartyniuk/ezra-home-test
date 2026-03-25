@@ -3,11 +3,9 @@ using ToDoList.Api.Data;
 using ToDoList.Api.Domain.Entities;
 using ToDoList.Api.Domain.Enums;
 using ToDoList.Api.DTOs;
-using ToDoList.Api.Services.Interfaces;
-
 namespace ToDoList.Api.Services;
 
-public class TaskService : ITaskService
+public class TaskService
 {
     private readonly AppDbContext _db;
 
