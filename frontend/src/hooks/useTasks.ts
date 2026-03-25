@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useTaskContext } from '../context/TaskContext';
 
 /**
@@ -8,12 +8,10 @@ import { useTaskContext } from '../context/TaskContext';
 export function useTasks() {
   const ctx = useTaskContext();
   const { fetchTasks, state } = ctx;
-  const filtersRef = useRef(state.filters);
 
   useEffect(() => {
-    filtersRef.current = state.filters;
     fetchTasks();
-  }, [state.filters]);
+  }, [state.filters, fetchTasks]);
 
   return ctx;
 }
