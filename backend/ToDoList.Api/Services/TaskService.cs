@@ -113,8 +113,8 @@ public class TaskService
         Id = task.Id,
         Title = task.Title,
         Description = task.Description,
-        Status = task.Status.ToString(),
-        Priority = task.Priority.ToString(),
+        Status = task.Status,
+        Priority = task.Priority,
         DueDate = task.DueDate,
         CreatedAt = task.CreatedAt,
         UpdatedAt = task.UpdatedAt
