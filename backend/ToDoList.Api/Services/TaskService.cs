@@ -11,7 +11,7 @@ public class TaskService
 
     public TaskService(AppDbContext db) => _db = db;
 
-    public async Task<IEnumerable<TaskItemDto>> GetAllAsync(TaskQueryParams queryParams)
+    public async Task<IEnumerable<TaskItemDto>> GetAllAsync(TaskQueryParams queryParams, CancellationToken ct = default)
     {
         var query = _db.Tasks.AsQueryable();
 
@@ -41,17 +41,17 @@ public class TaskService
             _                      => query.OrderByDescending(t => t.CreatedAt)
         };
 
-        var tasks = await query.ToListAsync();
+        var tasks = await query.ToListAsync(ct);
         return tasks.Select(MapToDto);
     }
 
-    public async Task<TaskItemDto?> GetByIdAsync(int id)
+    public async Task<TaskItemDto?> GetByIdAsync(int id, CancellationToken ct = default)
     {
-        var task = await _db.Tasks.FindAsync(id);
+        var task = await _db.Tasks.FindAsync([id], ct);
         return task is null ? null : MapToDto(task);
     }
 
-    public async Task<TaskItemDto> CreateAsync(CreateTaskDto dto)
+    public async Task<TaskItemDto> CreateAsync(CreateTaskDto dto, CancellationToken ct = default)
     {
         var now = DateTime.UtcNow;
         var task = new TaskItem
@@ -66,13 +66,13 @@ public class TaskService
         };
 
         _db.Tasks.Add(task);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
         return MapToDto(task);
     }
 
-    public async Task<TaskItemDto?> UpdateAsync(int id, UpdateTaskDto dto)
+    public async Task<TaskItemDto?> UpdateAsync(int id, UpdateTaskDto dto, CancellationToken ct = default)
     {
-        var task = await _db.Tasks.FindAsync(id);
+        var task = await _db.Tasks.FindAsync([id], ct);
         if (task is null) return null;
 
         task.Title = dto.Title;
@@ -82,29 +82,29 @@ public class TaskService
         task.DueDate = dto.DueDate;
         task.UpdatedAt = DateTime.UtcNow;
 
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
         return MapToDto(task);
     }
 
-    public async Task<TaskItemDto?> UpdateStatusAsync(int id, TaskItemStatus status)
+    public async Task<TaskItemDto?> UpdateStatusAsync(int id, TaskItemStatus status, CancellationToken ct = default)
     {
-        var task = await _db.Tasks.FindAsync(id);
+        var task = await _db.Tasks.FindAsync([id], ct);
         if (task is null) return null;
 
         task.Status = status;
         task.UpdatedAt = DateTime.UtcNow;
 
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
         return MapToDto(task);
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
     {
-        var task = await _db.Tasks.FindAsync(id);
+        var task = await _db.Tasks.FindAsync([id], ct);
         if (task is null) return false;
 
         _db.Tasks.Remove(task);
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
         return true;
     }
 

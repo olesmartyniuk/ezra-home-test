@@ -14,17 +14,17 @@ public class TasksController : ControllerBase
 
     /// <summary>Returns all tasks, with optional filtering and sorting.</summary>
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] TaskQueryParams queryParams)
+    public async Task<IActionResult> GetAll([FromQuery] TaskQueryParams queryParams, CancellationToken ct)
     {
-        var tasks = await _taskService.GetAllAsync(queryParams);
+        var tasks = await _taskService.GetAllAsync(queryParams, ct);
         return Ok(tasks);
     }
 
     /// <summary>Returns a single task by ID.</summary>
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<IActionResult> GetById(int id, CancellationToken ct)
     {
-        var task = await _taskService.GetByIdAsync(id);
+        var task = await _taskService.GetByIdAsync(id, ct);
         return task is null
             ? NotFound(new { status = 404, title = "Task not found.", detail = $"No task with ID {id} exists." })
             : Ok(task);
@@ -32,17 +32,17 @@ public class TasksController : ControllerBase
 
     /// <summary>Creates a new task.</summary>
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateTaskDto dto)
+    public async Task<IActionResult> Create([FromBody] CreateTaskDto dto, CancellationToken ct)
     {
-        var created = await _taskService.CreateAsync(dto);
+        var created = await _taskService.CreateAsync(dto, ct);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
     /// <summary>Replaces an existing task.</summary>
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdateTaskDto dto)
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateTaskDto dto, CancellationToken ct)
     {
-        var updated = await _taskService.UpdateAsync(id, dto);
+        var updated = await _taskService.UpdateAsync(id, dto, ct);
         return updated is null
             ? NotFound(new { status = 404, title = "Task not found.", detail = $"No task with ID {id} exists." })
             : Ok(updated);
@@ -50,9 +50,9 @@ public class TasksController : ControllerBase
 
     /// <summary>Updates only the status of a task.</summary>
     [HttpPatch("{id:int}/status")]
-    public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateTaskStatusDto dto)
+    public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateTaskStatusDto dto, CancellationToken ct)
     {
-        var updated = await _taskService.UpdateStatusAsync(id, dto.Status);
+        var updated = await _taskService.UpdateStatusAsync(id, dto.Status, ct);
         return updated is null
             ? NotFound(new { status = 404, title = "Task not found.", detail = $"No task with ID {id} exists." })
             : Ok(updated);
@@ -60,9 +60,9 @@ public class TasksController : ControllerBase
 
     /// <summary>Deletes a task.</summary>
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(int id, CancellationToken ct)
     {
-        var deleted = await _taskService.DeleteAsync(id);
+        var deleted = await _taskService.DeleteAsync(id, ct);
         return deleted
             ? NoContent()
             : NotFound(new { status = 404, title = "Task not found.", detail = $"No task with ID {id} exists." });
