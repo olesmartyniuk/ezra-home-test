@@ -10,7 +10,6 @@ A task management app built with **ASP.NET Core 10** and **React + TypeScript**.
 | ---------- | ----------------------------------------------------------------------- |
 | Backend    | ASP.NET Core 10 Web API, C#                                              |
 | ORM        | Entity Framework Core 10 (SQLite)                                        |
-| Validation | FluentValidation (server) + Zod + React Hook Form (client)              |
 | Frontend   | React 18, TypeScript, Vite                                              |
 | Styling    | Tailwind CSS 3                                                          |
 | HTTP       | Axios                                                                   |
@@ -85,7 +84,7 @@ The app opens at **http://localhost:5173**.
 - **Due dates** — overdue dates highlighted in red, today in amber
 - **Filtering** — by status, priority, and free-text search
 - **Sorting** — by created date, due date, priority, or status (asc/desc)
-- **Validation** — client-side (Zod) and server-side (FluentValidation), both return structured error messages
+- **Validation** — client-side (Zod) and server-side, both return structured error messages
 - **Global error handling** — consistent JSON error shape from the API; error popup in the UI
 - **Loading states** — spinner on initial load; per-button loading indicators
 - **Responsive layout** — 1-column on mobile, 3-column grid on desktop
@@ -106,7 +105,6 @@ ToDoList/
 │       ├── DTOs/               # Request / response shapes
 │       ├── Middleware/         # Global exception handler
 │       ├── Services/           # Business logic
-│       ├── Validators/         # FluentValidation rules
 │       └── Program.cs          # Composition root
 └── frontend/
     └── src/
@@ -166,7 +164,6 @@ See the [Production V2 — Changes & Priorities](#production-v2--changes--priori
 
 - **No AutoMapper** — manual `MapToDto()` in `TaskService` is explicit, fast, and avoids a heavyweight dependency for a small model. Tradeoff: add AutoMapper once there are many entities.
 - **Enums stored as strings** (`HasConversion<string>()`) — SQLite stays human-readable and is resilient to enum member reordering.
-- **FluentValidation** over Data Annotations — validation rules are colocated, composable, and easy to unit-test independently. The `AddFluentValidationAutoValidation()` hook means controllers stay thin.
 - **PATCH for status** — separating the status-update endpoint mirrors real-world Kanban UX (drag-and-drop) and avoids requiring the full task payload just to mark something done.
 - **Auto-migrate on startup** — suitable for a single-instance dev/demo app. In production this would be replaced by a CI step or a dedicated migration job.
 - **No authentication in MVP** — explicitly out of scope. The architecture slots JWT auth in cleanly: add `[Authorize]` attributes and a middleware layer without touching business logic.
