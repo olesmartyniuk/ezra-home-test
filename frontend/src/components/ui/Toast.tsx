@@ -1,13 +1,15 @@
 import { useEffect } from 'react';
 import { useTaskContext } from '../../context/TaskContext';
 
+const AUTO_DISMISS_MS = 5000;
+
 export function Toast() {
   const { state, clearError } = useTaskContext();
   const { error } = state;
 
   useEffect(() => {
     if (!error) return;
-    const timer = setTimeout(clearError, 5000);
+    const timer = setTimeout(clearError, AUTO_DISMISS_MS);
     return () => clearTimeout(timer);
   }, [error, clearError]);
 
