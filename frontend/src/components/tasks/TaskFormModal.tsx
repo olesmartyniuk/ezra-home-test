@@ -11,7 +11,7 @@ export function TaskFormModal() {
     const payload = {
       ...values,
       description: values.description || null,
-      dueDate: values.dueDate ? `${values.dueDate}T00:00:00Z` : null,
+      dueDate: values.dueDate || null,
     };
 
     if (editingTask) {
