@@ -11,12 +11,17 @@ export function formatDate(iso: string | null | undefined): string | null {
   });
 }
 
+/** Truncates a Date to local midnight so comparisons are timezone-safe. */
+function localMidnight(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
 /**
  * Returns true if the given ISO date string represents a past date (overdue).
  */
 export function isOverdue(iso: string | null | undefined): boolean {
   if (!iso) return false;
-  return new Date(iso) < new Date(new Date().toDateString());
+  return localMidnight(new Date(iso)) < localMidnight(new Date());
 }
 
 /**
@@ -24,7 +29,5 @@ export function isOverdue(iso: string | null | undefined): boolean {
  */
 export function isDueToday(iso: string | null | undefined): boolean {
   if (!iso) return false;
-  const due = new Date(iso).toDateString();
-  const today = new Date().toDateString();
-  return due === today;
+  return localMidnight(new Date(iso)).getTime() === localMidnight(new Date()).getTime();
 }
