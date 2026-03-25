@@ -81,6 +81,7 @@ interface TaskContextValue {
   setFilters: (filters: Partial<TaskFilters>) => void;
   openModal: (task?: Task) => void;
   closeModal: () => void;
+  clearError: () => void;
 }
 
 const TaskContext = createContext<TaskContextValue | null>(null);
@@ -104,8 +105,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'ADD_TASK', payload: task });
     } catch (err) {
       dispatch({ type: 'SET_ERROR', payload: (err as Error).message });
-      dispatch({ type: 'CLOSE_MODAL'});
-      throw err; // re-throw so the form can react (e.g. keep modal open)
+      throw err;
     }
   }, []);
 
@@ -115,7 +115,6 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'UPDATE_TASK', payload: task });
     } catch (err) {
       dispatch({ type: 'SET_ERROR', payload: (err as Error).message });
-      dispatch({ type: 'CLOSE_MODAL'});
       throw err;
     }
   }, []);
@@ -152,6 +151,10 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'CLOSE_MODAL' });
   }, []);
 
+  const clearError = useCallback(() => {
+    dispatch({ type: 'SET_ERROR', payload: null });
+  }, []);
+
   return (
     <TaskContext.Provider
       value={{
@@ -164,6 +167,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
         setFilters,
         openModal,
         closeModal,
+        clearError,
       }}
     >
       {children}

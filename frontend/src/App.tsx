@@ -3,6 +3,7 @@ import { PageLayout } from './components/layout/PageLayout';
 import { TaskFilters } from './components/tasks/TaskFilters';
 import { TaskList } from './components/tasks/TaskList';
 import { TaskFormModal } from './components/tasks/TaskFormModal';
+import { Toast } from './components/ui/Toast';
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
         </div>
         <TaskFormModal />
       </PageLayout>
+      <Toast />
     </TaskProvider>
   );
 }

@@ -1,27 +1,17 @@
 import { TaskCard } from './TaskCard';
 import { Spinner } from '../ui/Spinner';
 import { EmptyState } from '../ui/EmptyState';
-import { ErrorBanner } from '../ui/ErrorBanner';
 import { useTasks } from '../../hooks/useTasks';
 
 export function TaskList() {
-  const { state, fetchTasks } = useTasks();
-  const { tasks, loading, error, filters } = state;
+  const { state } = useTasks();
+  const { tasks, loading, filters } = state;
 
   if (loading && tasks.length === 0) {
     return (
       <div className="flex justify-center py-16">
         <Spinner />
       </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <ErrorBanner
-        message={error}
-        onDismiss={() => fetchTasks()}
-      />
     );
   }
 
