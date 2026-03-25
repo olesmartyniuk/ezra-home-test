@@ -14,12 +14,17 @@ export function TaskFormModal() {
       dueDate: values.dueDate || null,
     };
 
-    if (editingTask) {
-      await updateTask(editingTask.id, payload);
-    } else {
-      await createTask(payload);
+    try {
+      if (editingTask) {
+        await updateTask(editingTask.id, payload);
+      } else {
+        await createTask(payload);
+      }
+      closeModal();
+    } catch {
+      // Error already dispatched to context (toast will show).
+      // Swallow here to keep the modal open so the user doesn't lose their data.
     }
-    closeModal();
   }
 
   return (

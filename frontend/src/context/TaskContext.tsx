@@ -84,6 +84,11 @@ interface TaskContextValue {
   clearError: () => void;
 }
 
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  return 'An unexpected error occurred.';
+}
+
 const TaskContext = createContext<TaskContextValue | null>(null);
 
 export function TaskProvider({ children }: { children: ReactNode }) {
@@ -95,7 +100,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       const tasks = await tasksApi.getAll(state.filters);
       dispatch({ type: 'SET_TASKS', payload: tasks });
     } catch (err) {
-      dispatch({ type: 'SET_ERROR', payload: (err as Error).message });      
+      dispatch({ type: 'SET_ERROR', payload: getErrorMessage(err) });      
     }
   }, [state.filters]);
 
@@ -104,7 +109,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       const task = await tasksApi.create(data);
       dispatch({ type: 'ADD_TASK', payload: task });
     } catch (err) {
-      dispatch({ type: 'SET_ERROR', payload: (err as Error).message });
+      dispatch({ type: 'SET_ERROR', payload: getErrorMessage(err) });
       throw err;
     }
   }, []);
@@ -114,7 +119,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       const task = await tasksApi.update(id, data);
       dispatch({ type: 'UPDATE_TASK', payload: task });
     } catch (err) {
-      dispatch({ type: 'SET_ERROR', payload: (err as Error).message });
+      dispatch({ type: 'SET_ERROR', payload: getErrorMessage(err) });
       throw err;
     }
   }, []);
@@ -124,7 +129,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       const task = await tasksApi.updateStatus(id, status);
       dispatch({ type: 'UPDATE_TASK', payload: task });
     } catch (err) {
-      dispatch({ type: 'SET_ERROR', payload: (err as Error).message });
+      dispatch({ type: 'SET_ERROR', payload: getErrorMessage(err) });
       throw err;
     }
   }, []);
@@ -134,7 +139,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       await tasksApi.delete(id);
       dispatch({ type: 'DELETE_TASK', payload: id });
     } catch (err) {
-      dispatch({ type: 'SET_ERROR', payload: (err as Error).message });
+      dispatch({ type: 'SET_ERROR', payload: getErrorMessage(err) });
       throw err;
     }
   }, []);
