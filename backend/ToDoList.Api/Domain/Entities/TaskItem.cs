@@ -4,6 +4,9 @@ namespace ToDoList.Api.Domain.Entities;
 
 public class TaskItem
 {
+    public const int TitleMaxLength = 200;
+    public const int DescriptionMaxLength = 2000;
+
     public int Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }

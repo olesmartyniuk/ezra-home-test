@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using ToDoList.Api.Domain.Entities;
 using ToDoList.Api.Domain.Enums;
 
 namespace ToDoList.Api.DTOs;
@@ -6,10 +7,10 @@ namespace ToDoList.Api.DTOs;
 public class CreateTaskDto
 {
     [Required(ErrorMessage = "Title is required.")]
-    [StringLength(200, ErrorMessage = "Title must not exceed 200 characters.")]
+    [StringLength(TaskItem.TitleMaxLength, ErrorMessage = "Title must not exceed 200 characters.")]
     public string Title { get; set; } = string.Empty;
 
-    [StringLength(2000, ErrorMessage = "Description must not exceed 2000 characters.")]
+    [StringLength(TaskItem.DescriptionMaxLength, ErrorMessage = "Description must not exceed 2000 characters.")]
     public string? Description { get; set; }
 
     [EnumDataType(typeof(TaskItemStatus), ErrorMessage = "Invalid status value.")]

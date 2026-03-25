@@ -14,8 +14,8 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<TaskItem>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
-            entity.Property(e => e.Description).HasMaxLength(2000);
+            entity.Property(e => e.Title).IsRequired().HasMaxLength(TaskItem.TitleMaxLength);
+            entity.Property(e => e.Description).HasMaxLength(TaskItem.DescriptionMaxLength);
             // Store enums as strings for readability in SQLite
             entity.Property(e => e.Status).HasConversion<string>();
             entity.Property(e => e.Priority).HasConversion<string>();
