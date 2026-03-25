@@ -1,6 +1,6 @@
 # TaskFlow — Full-Stack To-Do Task Manager
 
-A production-quality task management app built with **ASP.NET Core 10** and **React + TypeScript**.
+A task management app built with **ASP.NET Core 10** and **React + TypeScript**.
 
 ---
 
@@ -86,7 +86,7 @@ The app opens at **http://localhost:5173**.
 - **Filtering** — by status, priority, and free-text search
 - **Sorting** — by created date, due date, priority, or status (asc/desc)
 - **Validation** — client-side (Zod) and server-side (FluentValidation), both return structured error messages
-- **Global error handling** — consistent JSON error shape from the API; error banner in the UI
+- **Global error handling** — consistent JSON error shape from the API; error popup in the UI
 - **Loading states** — spinner on initial load; per-button loading indicators
 - **Responsive layout** — 1-column on mobile, 3-column grid on desktop
 
@@ -105,7 +105,7 @@ ToDoList/
 │       │   └── Enums/          # TaskItemStatus, TaskPriority
 │       ├── DTOs/               # Request / response shapes
 │       ├── Middleware/         # Global exception handler
-│       ├── Services/           # Business logic + ITaskService interface
+│       ├── Services/           # Business logic
 │       ├── Validators/         # FluentValidation rules
 │       └── Program.cs          # Composition root
 └── frontend/
@@ -120,6 +120,43 @@ ToDoList/
         ├── types/              # TypeScript interfaces
         └── utils/              # Date formatting helpers
 ```
+
+---
+
+## Assumptions & Scalability
+
+### Assumptions
+
+- **Single user, no auth** — the app is scoped to a single anonymous user. There is no login, session, or per-user data isolation. This was an explicit MVP trade-off: the architecture slots JWT auth in cleanly (add `[Authorize]` + a `UserId` FK) without touching business logic.
+- **Moderate task volume** — the design assumes hundreds to low-thousands of tasks. Filtering and sorting are done server-side (correct default), but `GET /api/tasks` returns all matching records with no pagination, which would break at high volume.
+- **Single-instance deployment** — SQLite is a file-based database that cannot handle concurrent writes from multiple processes. The app is designed for a single server instance (dev/demo).
+- **Eventual consistency is acceptable** — there is no optimistic concurrency control. If two users edited the same task simultaneously, the last write wins silently.
+- **Trusted network** — no rate limiting, no throttling, and CORS is locked to `localhost:5173`. Suitable for a local or internal environment; not safe for the open internet without adding those layers.
+
+### Path to Scale
+
+The biggest scalability constraint is **SQLite + no auth + no pagination** — these three together are what prevent the app from serving real users. Everything else is multiplier work.
+
+**Step 1 — Unblock multi-user use**
+- Add authentication (JWT/OAuth2) and a `UserId` foreign key on every task.
+- Replace SQLite with **PostgreSQL**. SQLite cannot handle concurrent writes; Postgres scales to millions of rows and supports real connection pooling.
+- Add database indexes on `(UserId, Status)`, `(UserId, Priority)`, `(UserId, CreatedAt)`. Without them, every filter query is a full table scan.
+
+**Step 2 — Handle growing data volume**
+- Add **cursor-based pagination** to `GET /api/tasks`. The current design downloads all records on every page load — a user with 10 000 tasks would feel this immediately.
+- Replace the `LIKE '%…%'` search with **Postgres `tsvector`** or Elasticsearch. A leading-wildcard `LIKE` cannot use an index.
+
+**Step 3 — Handle growing traffic**
+- Add a **Redis cache** in front of task-list reads. Each user's filtered result set can be cached for a short TTL and invalidated on write. Even a 1-second cache eliminates most DB read load at scale.
+- Add **rate limiting** per user (ASP.NET Core `RateLimiter` middleware is built-in since .NET 7).
+- The API layer is already stateless — run **multiple instances** behind a load balancer (K8s HPA, AWS ALB) with zero code changes.
+
+**Step 4 — Global scale**
+- Add a **read replica per region** for `GET` queries. `TaskService` is almost entirely reads; routing them to replicas removes load from the primary.
+- For non-critical writes (status updates, deletes), consider an **async queue** (Kafka, SQS): return `202 Accepted` immediately and process in the background to decouple API latency from DB write latency.
+- Add **structured logging + distributed tracing** (OpenTelemetry → Datadog/Grafana). Console logs don't survive a multi-instance, multi-region deployment.
+
+See the [Production V2 — Changes & Priorities](#production-v2--changes--priorities) table below for a full prioritised list.
 
 ---
 
@@ -143,16 +180,27 @@ ToDoList/
 
 ---
 
-## What I Would Add in a Production V2
+## Production V2 — Changes & Priorities
 
-| Feature                 | Rationale                                                              |
-| ----------------------- | ---------------------------------------------------------------------- |
-| Authentication (JWT)    | Multi-user support; tasks scoped to the logged-in user                 |
-| Pagination              | The list endpoint returns all records — needs cursor or page-based pagination for scale |
-| Optimistic updates      | Update UI immediately, roll back on API failure for snappier feel       |
-| Task categories / tags  | Common request; modeled as a many-to-many relationship                 |
-| Drag-and-drop Kanban    | The PATCH `/status` endpoint already supports it; needs a Kanban view in the UI |
-| Due date reminders      | Email/push notifications via a background job (Hangfire or a queue)    |
-| Unit + integration tests | Backend: xUnit + WebApplicationFactory; Frontend: Vitest + RTL         |
-| Docker Compose          | Single `docker-compose up` to run both services + SQLite volume        |
-| CI/CD pipeline          | GitHub Actions: build, test, lint on every PR                          |
+| Priority | Feature / Change | Area | Rationale |
+|---|---|---|---|
+| P1 — Critical | Authentication (JWT / OAuth2) + UserId FK | Auth & tenancy | Currently every user sees every task. Required before any multi-user deployment; UserId becomes the primary partition key. Users only query their own tasks — sharding is natural and avoids cross-shard joins entirely. |
+| P1 — Critical | SQLite → PostgreSQL (or CockroachDB or AWS DynamoDB) | Database | SQLite cannot handle concurrent writes; hits a wall at a few thousand concurrent users. Highest-leverage single change. |
+| P1 — Critical | Indexes on (UserId, Status), (UserId, Priority), (UserId, CreatedAt) | Database | Without these, all filter/sort queries do full table scans. Immediate performance impact at any real data volume. |
+| P2 — High | Pagination (cursor / keyset) on GET /api/tasks | API layer | Endpoint currently returns all records. A user with millions of tasks would download everything on each request. |
+| P2 — High | Rate limiting per user | API layer | Without it, a single user can DoS the service. ASP.NET Core RateLimiter middleware is built-in. |
+| P2 — High | Redis cache for task list reads | Caching | Every request currently hits the DB. Even a 1-second cache per user+filter eliminates most DB load at scale; invalidate on writes. |
+| P2 — High | Unit + integration tests | Quality | xUnit + WebApplicationFactory on backend; Vitest + RTL on frontend. Needed before CI/CD is useful. |
+| P2 — High | CI/CD pipeline | Infrastructure | GitHub Actions: build, test, lint on every PR. Blue/green deployments + DB migration strategy. |
+| P3 — Medium | Read replica per region for GET queries | Database | TaskService queries are almost all reads; routing to replicas removes load from the primary at scale. |
+| P3 — Medium | Horizontal scaling behind load balancer | Infrastructure | App is already stateless — just run multiple instances behind K8s HPA or AWS ALB. No code changes required. |
+| P3 — Medium | Async write path via message queue | Write path | For non-critical writes (status updates, deletes), return 202 immediately and process via Kafka/SQS. Decouples API latency from DB write latency. |
+| P3 — Medium | Optimistic concurrency (EF Core rowversion) | Write path | Handles concurrent edits on creates/updates where the user needs the result back synchronously. |
+| P3 — Medium | Docker Compose | Infrastructure | Single `docker-compose up` to run both services + DB volume. Reduces onboarding friction and environment drift. |
+| P3 — Medium | Full-text search (Postgres tsvector / Elasticsearch) | Database | Current LIKE '%…%' has a leading wildcard — unindexable. Must be replaced before search becomes a bottleneck. |
+| P3 — Medium | Optimistic UI updates | Frontend | Update UI immediately, roll back on API failure. Improves perceived performance with no backend changes. |
+| P3 — Medium | Structured logs + observability (OpenTelemetry) | Infrastructure | Console logs don't scale. Structured logs → Datadog/Grafana + distributed tracing needed for production diagnosis. |
+| P4 — Nice to have | Task categories / tags | Feature | Many-to-many relationship. Commonly requested but purely additive — no existing functionality depends on it. |
+| P4 — Nice to have | Drag-and-drop Kanban view | Feature | PATCH /status already supports it; needs only a Kanban UI. Frontend-only work once auth and pagination are in place. |
+| P4 — Nice to have | Due date reminders | Feature | Email/push notifications via background job (Hangfire or a queue). Useful but requires notification infrastructure not yet present. |
+| P4 — Nice to have | CDN for static frontend assets | Infrastructure | Low effort, meaningful latency win for geographically distributed users once multi-region deployment is in place. |
