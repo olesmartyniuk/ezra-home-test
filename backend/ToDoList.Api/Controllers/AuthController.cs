@@ -41,13 +41,7 @@ public class AuthController(AppDbContext db, IConfiguration config) : Controller
         var user = await db.Users.FirstOrDefaultAsync(u => u.GoogleId == payload.Subject, ct);
         if (user is null)
         {
-            user = new User
-            {
-                GoogleId = payload.Subject,
-                Email = payload.Email,
-                Name = payload.Name,
-                Picture = payload.Picture
-            };
+            user = new User(payload.Subject, payload.Email, payload.Name, payload.Picture);
             db.Users.Add(user);
         }
         else
