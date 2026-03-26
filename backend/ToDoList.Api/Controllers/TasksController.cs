@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ToDoList.Api.DTOs;
 using ToDoList.Api.Middleware;
@@ -61,6 +62,7 @@ public class TasksController(TaskService taskService) : ControllerBase
         return deleted ? NoContent() : TaskNotFound(id);
     }
 
-    private NotFoundObjectResult TaskNotFound(int id) =>
-        NotFound(new { status = 404, title = "Task not found.", detail = $"No task with ID {id} exists." });
+    private ObjectResult TaskNotFound(int id) =>
+        Problem(statusCode: StatusCodes.Status404NotFound, title: "Task not found.",
+            detail: $"No task with ID {id} exists.");
 }

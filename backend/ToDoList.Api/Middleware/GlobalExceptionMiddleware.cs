@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Mvc;
+
 namespace ToDoList.Api.Middleware;
 
 public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
@@ -15,13 +17,14 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
             if (context.Response.HasStarted)
                 return;
 
-            context.Response.StatusCode = 500;
-            context.Response.ContentType = "application/json";
-            await context.Response.WriteAsJsonAsync(new
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            context.Response.ContentType = "application/problem+json";
+
+            await context.Response.WriteAsJsonAsync(new ProblemDetails
             {
-                status = 500,
-                title = "An unexpected error occurred.",
-                detail = "Please try again later."
+                Status = StatusCodes.Status500InternalServerError,
+                Title  = "An unexpected error occurred.",
+                Detail = "Please try again later."
             });
         }
     }
