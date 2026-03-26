@@ -10,7 +10,7 @@ A task management app built with **ASP.NET Core 10** and **React + TypeScript**.
 | ---------- | ----------------------------------------------------------------------- |
 | Backend    | ASP.NET Core 10 Web API, C#                                              |
 | ORM        | Entity Framework Core 10 (SQLite)                                        |
-| Frontend   | React 18, TypeScript, Vite                                              |
+| Frontend   | React 19, TypeScript, Vite                                              |
 | Styling    | Tailwind CSS 3                                                          |
 | HTTP       | Axios                                                                   |
 | State      | React Context + useReducer                                              |
@@ -57,6 +57,7 @@ The app opens at **http://localhost:5173**.
 
 | Method   | Endpoint                    | Description                         |
 | -------- | --------------------------- | ----------------------------------- |
+| `POST`   | `/api/auth/google`          | Exchange Google ID token for JWT    |
 | `GET`    | `/api/tasks`                | List tasks (filterable, sortable)   |
 | `GET`    | `/api/tasks/{id}`           | Get a single task                   |
 | `POST`   | `/api/tasks`                | Create a task                       |
@@ -78,6 +79,8 @@ The app opens at **http://localhost:5173**.
 
 ## Features
 
+- **Google Sign-In** — OAuth2 via Google; JWT issued on login, auto-logout on token expiry
+- **Per-user isolation** — tasks are scoped to the authenticated user; no cross-user data leakage
 - **CRUD tasks** — create, read, update, delete
 - **Status workflow** — Todo → In Progress → Done (one-click transitions on each card)
 - **Priority levels** — Low / Medium / High with color-coded badges
@@ -125,7 +128,7 @@ ToDoList/
 
 ### Assumptions
 
-- **Single user, no auth** — the app is scoped to a single anonymous user. There is no login, session, or per-user data isolation. This was an explicit MVP trade-off: the architecture slots JWT auth in cleanly (add `[Authorize]` + a `UserId` FK) without touching business logic.
+- **Google OAuth only** — authentication is handled via Google ID tokens. There is no username/password flow. Users are identified by their Google account; a `UserId` FK on every task enforces per-user data isolation.
 - **Moderate task volume** — the design assumes hundreds to low-thousands of tasks. Filtering and sorting are done server-side (correct default), but `GET /api/tasks` returns all matching records with no pagination, which would break at high volume.
 - **Single-instance deployment** — SQLite is a file-based database that cannot handle concurrent writes from multiple processes. The app is designed for a single server instance (dev/demo).
 - **Eventual consistency is acceptable** — there is no optimistic concurrency control. If two users edited the same task simultaneously, the last write wins silently.
@@ -133,12 +136,10 @@ ToDoList/
 
 ### Path to Scale
 
-The biggest scalability constraint is **SQLite + no auth + no pagination** — these three together are what prevent the app from serving real users. Everything else is multiplier work.
+The biggest scalability constraint is **SQLite + no pagination** — these are what prevent the app from serving real users at scale. Everything else is multiplier work.
 
-**Step 1 — Unblock multi-user use**
-- Add authentication (JWT/OAuth2) and a `UserId` foreign key on every task.
+**Step 1 — Switch to production ready database**
 - Replace SQLite with **PostgreSQL**. SQLite cannot handle concurrent writes; Postgres scales to millions of rows and supports real connection pooling.
-- Add database indexes on `(UserId, Status)`, `(UserId, Priority)`, `(UserId, CreatedAt)`. Without them, every filter query is a full table scan.
 
 **Step 2 — Handle growing data volume**
 - Add **cursor-based pagination** to `GET /api/tasks`. The current design downloads all records on every page load — a user with 10 000 tasks would feel this immediately.
@@ -163,10 +164,9 @@ See the [Production V2 — Changes & Priorities](#production-v2--changes--priori
 ### Backend
 
 - **No AutoMapper** — manual `MapToDto()` in `TaskService` is explicit, fast, and avoids a heavyweight dependency for a small model. Tradeoff: add AutoMapper once there are many entities.
-- **Enums stored as strings** (`HasConversion<string>()`) — SQLite stays human-readable and is resilient to enum member reordering.
 - **PATCH for status** — separating the status-update endpoint mirrors real-world Kanban UX (drag-and-drop) and avoids requiring the full task payload just to mark something done.
 - **Auto-migrate on startup** — suitable for a single-instance dev/demo app. In production this would be replaced by a CI step or a dedicated migration job.
-- **No authentication in MVP** — explicitly out of scope. The architecture slots JWT auth in cleanly: add `[Authorize]` attributes and a middleware layer without touching business logic.
+- **Google OAuth + JWT** — users authenticate via Google ID token (`POST /api/auth/google`); the API issues a signed JWT. `[Authorize]` on all task endpoints; `UserId` is extracted from the JWT claim and injected into every query, ensuring strict per-user data isolation.
 
 ### Frontend
 
@@ -181,9 +181,9 @@ See the [Production V2 — Changes & Priorities](#production-v2--changes--priori
 
 | Priority | Feature / Change | Area | Rationale |
 |---|---|---|---|
-| P1 — Critical | Authentication (JWT / OAuth2) + UserId FK | Auth & tenancy | Currently every user sees every task. Required before any multi-user deployment; UserId becomes the primary partition key. Users only query their own tasks — sharding is natural and avoids cross-shard joins entirely. |
+| ~~P1 — Critical~~ ✓ Done | ~~Authentication (JWT / OAuth2) + UserId FK~~ | Auth & tenancy | Google OAuth + JWT implemented. `UserId` FK on every task; all queries are scoped per user. |
 | P1 — Critical | SQLite → PostgreSQL (or CockroachDB or AWS DynamoDB) | Database | SQLite cannot handle concurrent writes; hits a wall at a few thousand concurrent users. Highest-leverage single change. |
-| P1 — Critical | Indexes on (UserId, Status), (UserId, Priority), (UserId, CreatedAt) | Database | Without these, all filter/sort queries do full table scans. Immediate performance impact at any real data volume. |
+| ~~P1 — Critical~~ ✓ Done | ~~Indexes on (UserId, Status), (UserId, Priority), (UserId, CreatedAt)~~ | Database | Composite indexes added on all four filter/sort columns. |
 | P2 — High | Pagination (cursor / keyset) on GET /api/tasks | API layer | Endpoint currently returns all records. A user with millions of tasks would download everything on each request. |
 | P2 — High | Rate limiting per user | API layer | Without it, a single user can DoS the service. ASP.NET Core RateLimiter middleware is built-in. |
 | P2 — High | Redis cache for task list reads | Caching | Every request currently hits the DB. Even a 1-second cache per user+filter eliminates most DB load at scale; invalidate on writes. |
