@@ -102,6 +102,7 @@ if (app.Environment.IsDevelopment())
 app.UseCors("AllowReactApp");
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<UserIdMiddleware>();
 app.MapControllers();
 
 // Auto-apply EF Core migrations on startup

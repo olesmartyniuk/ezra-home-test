@@ -1,7 +1,7 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ToDoList.Api.DTOs;
+using ToDoList.Api.Middleware;
 using ToDoList.Api.Services;
 
 namespace ToDoList.Api.Controllers;
@@ -11,7 +11,7 @@ namespace ToDoList.Api.Controllers;
 [Route("api/[controller]")]
 public class TasksController(TaskService taskService) : ControllerBase
 {
-    private int CurrentUserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    private int CurrentUserId => (int)HttpContext.Items[UserIdMiddleware.UserIdKey]!;
 
     /// <summary>Returns all tasks for the current user, with optional filtering and sorting.</summary>
     [HttpGet]
