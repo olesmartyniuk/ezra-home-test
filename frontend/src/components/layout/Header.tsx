@@ -1,8 +1,10 @@
 import { Button } from '../ui/Button';
 import { useTaskContext } from '../../context/TaskContext';
+import { useAuth } from '../../context/AuthContext';
 
 export function Header() {
   const { openModal } = useTaskContext();
+  const { user, signOut } = useAuth();
 
   return (
     <header className="bg-white border-b shadow-sm sticky top-0 z-40">
@@ -23,12 +25,31 @@ export function Header() {
           </svg>
           <h1 className="text-xl font-bold text-gray-900">TaskFlow</h1>
         </div>
-        <Button onClick={() => openModal()}>
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Add Task
-        </Button>
+
+        <div className="flex items-center gap-3">
+          {user && (
+            <div className="flex items-center gap-2">
+              {user.picture && (
+                <img
+                  src={user.picture}
+                  alt={user.name}
+                  className="h-8 w-8 rounded-full"
+                  referrerPolicy="no-referrer"
+                />
+              )}
+              <span className="text-sm text-gray-700 hidden sm:block">{user.name}</span>
+            </div>
+          )}
+          <Button onClick={() => openModal()}>
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add Task
+          </Button>
+          <Button variant="secondary" onClick={signOut}>
+            Sign out
+          </Button>
+        </div>
       </div>
     </header>
   );

@@ -8,6 +8,8 @@ public class TaskItem
     public const int DescriptionMaxLength = 2000;
 
     public int Id { get; set; }
+    public int UserId { get; set; }
+    public User User { get; set; } = null!;
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public TaskItemStatus Status { get; set; } = TaskItemStatus.Todo;

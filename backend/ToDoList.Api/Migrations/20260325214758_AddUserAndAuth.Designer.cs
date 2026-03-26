@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ToDoList.Api.Data;
 
@@ -10,9 +11,11 @@ using ToDoList.Api.Data;
 namespace ToDoList.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260325214758_AddUserAndAuth")]
+    partial class AddUserAndAuth
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.0");
@@ -54,13 +57,7 @@ namespace ToDoList.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId", "CreatedAt");
-
-                    b.HasIndex("UserId", "DueDate");
-
-                    b.HasIndex("UserId", "Priority");
-
-                    b.HasIndex("UserId", "Status");
+                    b.HasIndex("UserId");
 
                     b.ToTable("Tasks");
                 });
