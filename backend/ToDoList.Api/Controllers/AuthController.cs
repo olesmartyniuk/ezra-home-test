@@ -19,24 +19,12 @@ public class AuthController(AppDbContext db, IConfiguration config) : Controller
     [HttpPost("google")]
     public async Task<IActionResult> Google([FromBody] GoogleAuthRequest request, CancellationToken ct)
     {
-        GoogleJsonWebSignature.Payload payload;
-        try
-        {
-            payload = await GoogleJsonWebSignature.ValidateAsync(request.IdToken,
-                new GoogleJsonWebSignature.ValidationSettings
-                {
-                    Audience = [config["Google:ClientId"]]
-                });
-        }
-        catch
-        {
-            return Unauthorized(new
+        var payload = await GoogleJsonWebSignature.ValidateAsync(
+            request.IdToken,
+            new GoogleJsonWebSignature.ValidationSettings
             {
-                status = 401,
-                title = "Invalid Google token.",
-                detail = "The provided Google ID token could not be validated."
+                Audience = [config["Google:ClientId"]]
             });
-        }
 
         var user = await db.Users.FirstOrDefaultAsync(u => u.GoogleId == payload.Subject, ct);
         if (user is null)
