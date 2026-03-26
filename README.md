@@ -181,14 +181,12 @@ See the [Production V2 — Changes & Priorities](#production-v2--changes--priori
 
 | Priority | Feature / Change | Area | Rationale |
 |---|---|---|---|
-| ~~P1 — Critical~~ ✓ Done | ~~Authentication (JWT / OAuth2) + UserId FK~~ | Auth & tenancy | Google OAuth + JWT implemented. `UserId` FK on every task; all queries are scoped per user. |
 | P1 — Critical | SQLite → PostgreSQL (or CockroachDB or AWS DynamoDB) | Database | SQLite cannot handle concurrent writes; hits a wall at a few thousand concurrent users. Highest-leverage single change. |
-| ~~P1 — Critical~~ ✓ Done | ~~Indexes on (UserId, Status), (UserId, Priority), (UserId, CreatedAt)~~ | Database | Composite indexes added on all four filter/sort columns. |
+| P2 — High | Unit + integration tests | Quality | xUnit + WebApplicationFactory on backend; Vitest + RTL on frontend. Needed before CI/CD is useful. |
+| P2 — High | CI/CD pipeline | Infrastructure | GitHub Actions: build, test, lint on every PR. Blue/green deployments + DB migration strategy. |
 | P2 — High | Pagination (cursor / keyset) on GET /api/tasks | API layer | Endpoint currently returns all records. A user with millions of tasks would download everything on each request. |
 | P2 — High | Rate limiting per user | API layer | Without it, a single user can DoS the service. ASP.NET Core RateLimiter middleware is built-in. |
 | P2 — High | Redis cache for task list reads | Caching | Every request currently hits the DB. Even a 1-second cache per user+filter eliminates most DB load at scale; invalidate on writes. |
-| P2 — High | Unit + integration tests | Quality | xUnit + WebApplicationFactory on backend; Vitest + RTL on frontend. Needed before CI/CD is useful. |
-| P2 — High | CI/CD pipeline | Infrastructure | GitHub Actions: build, test, lint on every PR. Blue/green deployments + DB migration strategy. |
 | P3 — Medium | Read replica per region for GET queries | Database | TaskService queries are almost all reads; routing to replicas removes load from the primary at scale. |
 | P3 — Medium | Horizontal scaling behind load balancer | Infrastructure | App is already stateless — just run multiple instances behind K8s HPA or AWS ALB. No code changes required. |
 | P3 — Medium | Async write path via message queue | Write path | For non-critical writes (status updates, deletes), return 202 immediately and process via Kafka/SQS. Decouples API latency from DB write latency. |
