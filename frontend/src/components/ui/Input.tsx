@@ -16,11 +16,7 @@ export function Input({ label, error, id, className = '', ...props }: InputProps
       <input
         id={id}
         {...props}
-        className={`block w-full rounded-md border px-3 py-2 text-sm shadow-sm
-          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-          ${error ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'}
-          disabled:bg-gray-100 disabled:cursor-not-allowed
-          ${className}`}
+        className={`block w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed ${error ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'} ${className}`}
       />
       {error && <p className="text-xs text-red-600">{error}</p>}
     </div>

@@ -40,7 +40,7 @@ export function TaskFilters() {
   const hasActiveFilters = filters.status || filters.priority || filters.search;
 
   return (
-    <div className="bg-white rounded-xl border shadow-sm p-4 flex flex-col sm:flex-row gap-3">
+    <div className="bg-white rounded-md border p-4 flex flex-col sm:flex-row gap-3">
       <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Input
           id="search"
@@ -62,7 +62,7 @@ export function TaskFilters() {
         />
       </div>
 
-      <div className="border-t sm:border-t-0 sm:border-l border-gray-200 pt-3 sm:pt-0 sm:pl-3 flex items-end gap-2 shrink-0">
+      <div className="border-t sm:border-t-0 sm:border-l border-gray-200 pt-3 sm:pt-0 sm:pl-3 flex items-end gap-2">
         <Select
           id="sort-by"
           label="Sort by"
@@ -82,7 +82,7 @@ export function TaskFilters() {
       </div>
 
       {hasActiveFilters && (
-        <div className="border-t sm:border-t-0 sm:border-l border-gray-200 pt-3 sm:pt-0 sm:pl-3 flex items-end shrink-0">
+        <div className="border-t sm:border-t-0 sm:border-l border-gray-200 pt-3 sm:pt-0 sm:pl-3 flex items-end">
           <Button variant="ghost" size="sm" onClick={handleReset}>
             Clear filters
           </Button>

@@ -17,10 +17,7 @@ export function Textarea({ label, error, id, className = '', ...props }: Textare
         id={id}
         rows={3}
         {...props}
-        className={`block w-full rounded-md border px-3 py-2 text-sm shadow-sm resize-none
-          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-          ${error ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'}
-          ${className}`}
+        className={`block w-full rounded-md border px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${error ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'} ${className}`}
       />
       {error && <p className="text-xs text-red-600">{error}</p>}
     </div>
