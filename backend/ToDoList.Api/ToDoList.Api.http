@@ -1,6 +1,7 @@
 @ToDoList.Api_HostAddress = http://localhost:5000
+@Token = ""
 
 GET {{ToDoList.Api_HostAddress}}/api/tasks
 Accept: application/json
-
+Authorization: Bearer {{Token}}
 ###

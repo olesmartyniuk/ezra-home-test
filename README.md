@@ -15,6 +15,7 @@ A task management app built with **ASP.NET Core 10** and **React + TypeScript**.
 | HTTP       | Axios                                                                   |
 | State      | React Context + useReducer                                              |
 | Docs       | Swagger / OpenAPI (http://localhost:5000/swagger)                       |
+| Testing    | xUnit, `WebApplicationFactory`, SQLite in-memory                        |
 
 ---
 
@@ -99,16 +100,19 @@ The app opens at **http://localhost:5173**.
 ```
 ToDoList/
 ├── backend/
-│   └── ToDoList.Api/
-│       ├── Controllers/        # HTTP layer only — no business logic
-│       ├── Data/               # EF Core DbContext + migrations
-│       ├── Domain/
-│       │   ├── Entities/       # TaskItem entity
-│       │   └── Enums/          # TaskItemStatus, TaskPriority
-│       ├── DTOs/               # Request / response shapes
-│       ├── Middleware/         # Global exception handler
-│       ├── Services/           # Business logic
-│       └── Program.cs          # Composition root
+│   ├── ToDoList.Api/
+│   │   ├── Controllers/        # HTTP layer only — no business logic
+│   │   ├── Data/               # EF Core DbContext + migrations
+│   │   ├── Domain/
+│   │   │   ├── Entities/       # TaskItem entity
+│   │   │   └── Enums/          # TaskItemStatus, TaskPriority
+│   │   ├── DTOs/               # Request / response shapes
+│   │   ├── Middleware/         # Global exception handler
+│   │   ├── Services/           # Business logic
+│   │   └── Program.cs          # Composition root
+│   └── ToDoList.Api.IntegrationTests/
+│       ├── Infrastructure/     # WebApplicationFactory, FakeAuthHandler, TasksTestBase
+│       └── Tasks/              # Integration tests per endpoint (GetAll, GetById, Create, …)
 └── frontend/
     └── src/
         ├── api/                # Axios client + typed API functions

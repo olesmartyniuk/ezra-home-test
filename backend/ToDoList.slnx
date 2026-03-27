@@ -2,4 +2,7 @@
   <Folder Name="/ToDoList.Api/">
     <Project Path="./ToDoList.Api/ToDoList.Api.csproj" />
   </Folder>
+  <Folder Name="/ToDoList.Api.IntegrationTests/">
+    <Project Path="./ToDoList.Api.IntegrationTests/ToDoList.Api.IntegrationTests.csproj" />
+  </Folder>
 </Solution>
