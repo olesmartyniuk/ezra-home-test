@@ -1,4 +1,4 @@
-# TaskFlow — Full-Stack To-Do Task Manager
+# Full-Stack To-Do Task Manager
 
 A task management app built with **ASP.NET Core 10** and **React + TypeScript**.
 
