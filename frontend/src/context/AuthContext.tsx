@@ -6,7 +6,7 @@ import {
   useEffect,
   type ReactNode,
 } from 'react';
-import { setAuthToken, setUnauthorizedHandler } from '../api/axiosClient';
+import { axiosClient, setAuthToken, setUnauthorizedHandler } from '../api/axiosClient';
 
 export interface AuthUser {
   id: number;
@@ -26,7 +26,6 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(() => {
@@ -56,20 +55,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = useCallback(async (idToken: string) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/auth/google`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data?.title ?? 'Authentication failed.');
-      }
-      const data = await res.json();
+      const { data } = await axiosClient.post<{ token: string; user: AuthUser }>('/auth/google', { idToken });
       localStorage.setItem(TOKEN_KEY, data.token);
       localStorage.setItem(USER_KEY, JSON.stringify(data.user));
       setAuthToken(data.token);
-      setUser(data.user as AuthUser);
+      setUser(data.user);
     } finally {
       setIsLoading(false);
     }
